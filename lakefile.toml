@@ -1,0 +1,15 @@
+name = "BallRivoal"
+version = "0.1.0"
+defaultTargets = ["ballrivoal"]
+
+[[lean_lib]]
+name = "BallRivoal"
+
+[[lean_exe]]
+name = "ballrivoal"
+root = "Main"
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "v4.29.0"
