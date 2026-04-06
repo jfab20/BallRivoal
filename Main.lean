@@ -1,4 +1,4 @@
 import BallRivoal
 
 def main : IO Unit :=
-  IO.println s!"Hello, {hello}!"
+  IO.println s!"Project Loaded Successfully"
