@@ -19,7 +19,7 @@ structure hypotheses (a r : ℕ) : Prop where
   h2r_le_a : 2 * r < a
 
 noncomputable def R (n : ℕ) (z : ℂ) : ℂ :=
-  (n.factorial ^ (a - 2 * r) : ℂ) * 
+  (n.factorial ^ (a - 2 * r) : ℂ) *
   (ascPochhammer ℂ (r * n)).eval (z - (r * n) + 1) *
   (ascPochhammer ℂ (r * n)).eval (z + n + 2) /
   ((ascPochhammer ℂ (n + 1)).eval (z + 1))^(a)
@@ -35,7 +35,7 @@ noncomputable def S (n : ℕ) (z : ℂ) : ℂ :=
 -- To define c_(l,j,n), we need to remove the pole at z = -(j+1).
 -- So I define the numerator / denominator of R_n (z)
 
-noncomputable def Rnum (n: ℕ) (z: ℂ) : ℂ := 
+noncomputable def Rnum (n: ℕ) (z: ℂ) : ℂ :=
   (n.factorial ^ (a - 2 * r) : ℂ) *
   (ascPochhammer ℂ (r * n)).eval (z - (r * n) + 1) *
   (ascPochhammer ℂ (r * n)).eval (z + n + 2)
@@ -68,13 +68,27 @@ noncomputable def P (l n : ℕ) : ℂ[X] :=
   else
     ∑ j ∈ Finset.range (n+1) , C (c a r l j n ) * X^j
 
-theorem lemma_nesterenko : 1 = 1 := by
-  norm_num
+theorem nesterenko
+(N : ℕ)
+(θ : Fin N → ℝ)
+(p : Fin N → ℕ → ℤ)
+(f g : ℕ → ℝ)
+(α β : ℝ)
+(α0 : 0<α)
+(α1 : α<1)
+(β1 : 1<β)
+(hf : ∀ε>0, ∃ Nf : ℕ, ∀n>Nf, |f n|<ε*n)
+(hg : ∀ε>0, ∃ Ng : ℕ, ∀n>Ng, |g n|<ε*n)
+(h2 : ∀ n : ℕ, |∑ l, p l n * θ l| = α^(n+g n))
+(h3 : ∀ n : ℕ, ∀ l : Fin N, ∀ε>0, |p l n|≤β^(n+g n))
+:
+Set.finrank ℚ (Set.range θ) ≥ (Real.log β - Real.log α) / (Real.log β)
+:= sorry
 
 theorem sn_of_one_eq_linear_combination_zeta (h: hypotheses a r) (n : ℕ) :
     S a r n 1 =
     (P a r 0 n).eval 1
-    + ∑ l ∈ Finset.Icc 2 a, (P a r l n).eval 1 * riemannZeta (↑ l) := by 
+    + ∑ l ∈ Finset.Icc 2 a, (P a r l n).eval 1 * riemannZeta (↑ l) := by
     sorry
 
 lemma conditions_for_pln_of_one_eq_zero (n : ℕ) (l : ℕ)
@@ -87,11 +101,11 @@ lemma conditions_for_pln_of_one_eq_zero (n : ℕ) (l : ℕ)
 
 lemma sn1_linear_combination_odd_zeta_values (n : ℕ)
   (hn_even: Even n)  :
-    S a r n 1  = (P a r 0 n).eval 1 + 
-    ∑ k ∈ Finset.Icc 1 ((a-1)/2) , ((P a r (2 * k + 1) n).eval 1) 
+    S a r n 1  = (P a r 0 n).eval 1 +
+    ∑ k ∈ Finset.Icc 1 ((a-1)/2) , ((P a r (2 * k + 1) n).eval 1)
     * riemannZeta (↑ (2 * k + 1) ) := by sorry
 
-def Q (x : ℝ) : ℝ := 
+def Q (x : ℝ) : ℝ :=
   r * x^(a + 2) - (r + 1) * x^(a + 1) + (r + 1) * x - r
 
 lemma exists_unique_root_Q (h: hypotheses a r) :
@@ -101,26 +115,26 @@ lemma exists_unique_root_Q (h: hypotheses a r) :
 noncomputable def s0 (h: hypotheses a r): ℝ :=
   Classical.choose (exists_unique_root_Q a r h)
 
-noncomputable def phi (h: hypotheses a r): ℝ := 
+noncomputable def phi (h: hypotheses a r): ℝ :=
   let s := s0 a r h
   ((r+1)*s - r)^r * ((r+1) - r*s )^(r + 1) * (1-s)^(a - 2 * r)
 
-lemma lim_sn_pow_one_over_n_eq_phi (h: hypotheses a r) : 
-    Tendsto (fun n => ((‖S a r n 1‖)^((1: ℝ)/(↑n)))) atTop (𝓝  (phi a r h) ) 
+lemma lim_sn_pow_one_over_n_eq_phi (h: hypotheses a r) :
+    Tendsto (fun n => ((‖S a r n 1‖)^((1: ℝ)/(↑n)))) atTop (𝓝  (phi a r h) )
     := by sorry
 
-lemma bounds_on_phi (h: hypotheses a r) : 
+lemma bounds_on_phi (h: hypotheses a r) :
     letI phi := phi a r h
     0 < phi ∧ phi ≤ 2^(r + 1) / r^(a - 2 * r) := by
     sorry
 
 lemma limsup_pln_pow_one_over_n (h : hypotheses a r) (l : ℕ)
   (hl_upperbound : l ≤ a) :
-  Filter.limsup (fun n => ( (‖(P a r l n).eval 1‖)^(1/(↑n)))) atTop 
-  ≤ 2^(a - 2 * r) * (2 * r + 1)^(2 * r +1) := by 
+  Filter.limsup (fun n => ( (‖(P a r l n).eval 1‖)^(1/(↑n)))) atTop
+  ≤ 2^(a - 2 * r) * (2 * r + 1)^(2 * r +1) := by
   sorry
 
-def lcm_of_first_n_integers (n : ℕ) : ℕ := 
+def lcm_of_first_n_integers (n : ℕ) : ℕ :=
   (Finset.Icc 1 n).lcm id
 
 -- checking that dn behaves correctly
@@ -131,7 +145,7 @@ def lcm_of_first_n_integers (n : ℕ) : ℕ :=
 
 lemma dn_times_pln_is_integer_polynomial (l n : ℕ) (hl : l ≤ a) :
   ∃ (Q : Polynomial ℤ),
-    C (((lcm_of_first_n_integers n) ^ (a - l) : ℕ) : ℂ) 
+    C (((lcm_of_first_n_integers n) ^ (a - l) : ℕ) : ℂ)
     * P a r l n = Q.map (algebraMap ℤ ℂ) := by
   sorry
 
@@ -155,7 +169,7 @@ lemma lower_bound_dimension (h : hypotheses a r) :
       (2 * r + 1)* (Real.log (2 *r + 1))
       - (Real.log (phi a r h) )
     )/(
-    a + (a - 2 * r) * (Real.log 2) 
+    a + (a - 2 * r) * (Real.log 2)
     + (2 * r + 1) * (Real.log (2 * r + 1))
     )
     ≤ dimension_span_first_odd_values_zeta a
@@ -189,7 +203,7 @@ include hodd_a h3_le_a in
 theorem dimension_at_least_log_over_3 :
     1/3 * (Real.log a) ≤
     dimension_span_first_odd_values_zeta a :=
-  by 
+  by
   sorry
 
 def condFilter : Filter ℕ := atTop ⊓ principal {a | Odd a ∧ 3 ≤ a}
@@ -226,7 +240,7 @@ theorem dimension_asymptotic_bound :
 
     have h2 := hN a hageN
 
-    have h3 : |f a| ≤ ε := by 
+    have h3 : |f a| ≤ ε := by
       apply h2
       tauto
 
