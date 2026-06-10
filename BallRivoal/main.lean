@@ -69,21 +69,21 @@ noncomputable def P (l n : ℕ) : ℂ[X] :=
     ∑ j ∈ Finset.range (n+1) , C (c a r l j n ) * X^j
 
 theorem nesterenko
-(N : ℕ)
-(θ : Fin N → ℝ)
-(p : Fin N → ℕ → ℤ)
-(f g : ℕ → ℝ)
-(α β : ℝ)
-(α0 : 0<α)
-(α1 : α<1)
-(β1 : 1<β)
-(hf : ∀ε>0, ∃ Nf : ℕ, ∀n>Nf, |f n|<ε*n)
-(hg : ∀ε>0, ∃ Ng : ℕ, ∀n>Ng, |g n|<ε*n)
-(h2 : ∀ n : ℕ, |∑ l, p l n * θ l| = α^(n+g n))
-(h3 : ∀ n : ℕ, ∀ l : Fin N, ∀ε>0, |p l n|≤β^(n+g n))
-:
-Set.finrank ℚ (Set.range θ) ≥ (Real.log β - Real.log α) / (Real.log β)
-:= sorry
+  (N : ℕ)
+  (θ : Fin N → ℝ)
+  (p : Fin N → ℕ → ℤ)
+  (f g : ℕ → ℝ)
+  (α β : ℝ)
+  (α0 : 0<α)
+  (β1 : 1<β)
+  (hf : ∀ε>0, ∃ Nf : ℕ, ∀n>Nf, |f n|<ε*n)
+  (hg : ∀ε>0, ∃ Ng : ℕ, ∀n>Ng, |g n|<ε*n)
+  (h2 : ∀ n : ℕ, |∑ l, p l n * θ l| = α^(n+g n))
+  (h3 : ∀ n : ℕ, ∀ l : Fin N, ∀ε>0, |p l n|≤β^(n+g n))
+  :
+  Set.finrank ℚ (Set.range θ)
+  ≥ (Real.log β - Real.log α) / (Real.log β)
+  := by sorry
 
 theorem sn_of_one_eq_linear_combination_zeta (h: hypotheses a r) (n : ℕ) :
     S a r n 1 =
@@ -208,14 +208,70 @@ theorem dimension_at_least_log_over_3 :
 
 def condFilter : Filter ℕ := atTop ⊓ principal {a | Odd a ∧ 3 ≤ a}
 
+noncomputable def optimal_r (a : ℕ) : ℕ := (a-1)/2
+
+noncomputable def lower_bound_on_optimal_r (a: ℕ) : ℝ :=
+    (
+      (Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)
+    )/(
+    1 + (Real.log 2) +
+    (2 * (optimal_r a) + 1) / (a + 1) * (Real.log (optimal_r a + 1))
+    )
+
+lemma bounded_difference_with_r : ∀ a ≥ 5, |optimal_r a - (a/(Real.log a)^2)| ≤ 1 
+  := by sorry
+
+lemma bounds_on_r (a : ℕ) (ha: 3 ≤ a) : 1 ≤ optimal_r a ∧ 2 * optimal_r a < a
+  := by sorry
+
+lemma applying_corollary_to_r : ∀ a, (Odd a) → (3 ≤ a)
+→ ( lower_bound_on_optimal_r a ≤ dimension_span_first_odd_values_zeta a ) := by
+
+  intro a odda age3
+
+  have hyp : hypotheses a (optimal_r a) := {
+    hodd_a := odda
+    h3_le_a := age3
+    h1_le_r := (bounds_on_r a age3).left
+    h2r_le_a := (bounds_on_r a age3).right
+  }
+
+  exact cor_lower_bound_dimension a (optimal_r a) hyp
+
+noncomputable def numerator_limit (a: ℕ) : ℝ := 
+    (
+      (Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)
+    ) / (Real.log a)
+
+noncomputable def denominator_limit (a: ℕ) : ℝ := 
+    (
+      1 + (Real.log 2) +
+      (2 * (optimal_r a) + 1) / (a + 1) * (Real.log (optimal_r a + 1))
+    ) / (1 + Real.log 2)
+
+theorem numerator_tendsto_one : Tendsto numerator_limit condFilter (nhds 1) := 
+  by sorry
+
+theorem denominator_tendsto_one : Tendsto denominator_limit condFilter (nhds 1) := 
+  by sorry
+
+noncomputable def H (a: ℕ) : ℝ := 
+    (
+      (Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)
+    )/(
+    1 + (Real.log 2) +
+    (2 * (optimal_r a) + 1) / (a + 1) * (Real.log (optimal_r a + 1))
+    ) * (1 + Real.log 2)/(Real.log a)
+
+theorem limitH : Tendsto H condFilter (nhds 1) := by
+  sorry
+
 theorem dimension_asymptotic_bound :
     ∀ ε > 0, ∃ (N : ℕ) , ∀ a ≥ N, (Odd a) → (3 ≤ a) →
     (1-ε)/(1 + (Real.log 2)) * (Real.log a)
     ≤
     dimension_span_first_odd_values_zeta a
     := by
-
-    have r := (fun (a : ℕ) => ((a-1)/2 : ℝ))
 
     intro ε hε
 
@@ -238,18 +294,8 @@ theorem dimension_asymptotic_bound :
 
     intro a hageN hodd hge3
 
-    have h2 := hN a hageN
-
-    have h3 : |f a| ≤ ε := by
-      apply h2
-      tauto
-
-    have h4 := h1 a hodd hge3
-
-    apply le_trans _ h4
-
-    have h5 := abs_le.1 h3
-
+    apply le_trans _ (h1 a hodd hge3)
     gcongr
-
+    have h_abs := abs_le.1 (hN a hageN ⟨hodd, hge3⟩)
     linarith
+
