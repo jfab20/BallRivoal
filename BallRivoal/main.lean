@@ -69,21 +69,21 @@ noncomputable def P (l n : ℕ) : ℂ[X] :=
     ∑ j ∈ Finset.range (n+1) , C (c a r l j n ) * X^j
 
 theorem nesterenko
-(N : ℕ)
-(θ : Fin N → ℝ)
-(p : Fin N → ℕ → ℤ)
-(f g : ℕ → ℝ)
-(α β : ℝ)
-(α0 : 0<α)
-(α1 : α<1)
-(β1 : 1<β)
-(hf : ∀ε>0, ∃ Nf : ℕ, ∀n>Nf, |f n|<ε*n)
-(hg : ∀ε>0, ∃ Ng : ℕ, ∀n>Ng, |g n|<ε*n)
-(h2 : ∀ n : ℕ, |∑ l, p l n * θ l| = α^(n+g n))
-(h3 : ∀ n : ℕ, ∀ l : Fin N, ∀ε>0, |p l n|≤β^(n+g n))
-:
-Set.finrank ℚ (Set.range θ) ≥ (Real.log β - Real.log α) / (Real.log β)
-:= sorry
+  (N : ℕ)
+  (θ : Fin N → ℝ)
+  (p : Fin N → ℕ → ℤ)
+  (f g : ℕ → ℝ)
+  (α β : ℝ)
+  (α0 : 0<α)
+  (β1 : 1<β)
+  (hf : ∀ε>0, ∃ Nf : ℕ, ∀n>Nf, |f n|<ε*n)
+  (hg : ∀ε>0, ∃ Ng : ℕ, ∀n>Ng, |g n|<ε*n)
+  (h2 : ∀ n : ℕ, |∑ l, p l n * θ l| = α^(n+g n))
+  (h3 : ∀ n : ℕ, ∀ l : Fin N, ∀ε>0, |p l n|≤β^(n+g n))
+  :
+  Set.finrank ℚ (Set.range θ)
+  ≥ (Real.log β - Real.log α) / (Real.log β)
+  := by sorry
 
 theorem sn_of_one_eq_linear_combination_zeta (h: hypotheses a r) (n : ℕ) :
     S a r n 1 =
@@ -163,6 +163,14 @@ noncomputable def dimension_span_first_odd_values_zeta (a : ℕ) :=
     {1} ∪ Set.range (first_odd_zeta_values a)
     ))
 
+noncomputable def second_proposition_bound (a: ℕ) (r: ℕ) : ℝ :=
+    (
+      (Real.log r) + (a-r)/(a+1) * (Real.log 2)
+    )/(
+    1 + (Real.log 2) +
+    (2 * r + 1) / (a + 1) * (Real.log (r+1))
+    )
+
 lemma lower_bound_dimension (h : hypotheses a r) :
     (
       (a-2 * r) * (Real.log 2) +
@@ -177,12 +185,7 @@ lemma lower_bound_dimension (h : hypotheses a r) :
   sorry
 
 lemma cor_lower_bound_dimension (h: hypotheses a r) :
-    (
-      (Real.log r) + (a-r)/(a+1) * (Real.log 2)
-    )/(
-    1 + (Real.log 2) +
-    (2 * r + 1) / (a + 1) * (Real.log (r+1))
-    )
+    second_proposition_bound a r
     ≤ dimension_span_first_odd_values_zeta a
     := by
   sorry
@@ -208,6 +211,102 @@ theorem dimension_at_least_log_over_3 :
 
 def condFilter : Filter ℕ := atTop ⊓ principal {a | Odd a ∧ 3 ≤ a}
 
+noncomputable def optimal_r (a : ℕ) : ℕ := ⌊a/(Real.log a)^2⌋₊
+
+lemma bounded_difference_with_r (a: ℕ) (h5lea: 5 ≤ a):
+    |optimal_r a - (a/(Real.log a)^2)| ≤ 1 := by
+
+    unfold optimal_r
+    apply abs_le.2
+    constructor
+    · simp
+      apply le_of_lt
+      apply ((Nat.floor_eq_iff _).1 _).2
+      positivity
+      tauto
+
+    · simp
+      have h0 : (0 : ℝ) ≤ (1 : ℝ) := by norm_num
+      have h1 : ⌊a / Real.log ↑a ^ 2⌋₊ ≤ ↑a / Real.log ↑a ^ 2 := by
+        apply ((Nat.floor_eq_iff _).1 _).1
+        positivity
+        tauto
+      linarith [add_le_add (h0) (h1)]
+
+lemma bounds_on_r (a : ℕ) (ha: 3 ≤ a) : 1 ≤ optimal_r a ∧ 2 * (optimal_r a) < a
+  := by
+  constructor
+  · sorry
+  · sorry
+
+noncomputable def lower_bound_on_optimal_r (a: ℕ) : ℝ :=
+  second_proposition_bound a (optimal_r a)
+
+lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
+     lower_bound_on_optimal_r a ≤ dimension_span_first_odd_values_zeta a  := by
+
+  have hyp : hypotheses a (optimal_r a) := {
+    hodd_a := hodd
+    h3_le_a := h3lea
+    h1_le_r := (bounds_on_r a h3lea).left
+    h2r_le_a := (bounds_on_r a h3lea).right
+  }
+
+  exact cor_lower_bound_dimension a (optimal_r a) hyp
+
+noncomputable def numerator_of_limit (a: ℕ) : ℝ :=
+    (
+      (Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)
+    ) / (Real.log a)
+
+noncomputable def denominator_of_limit (a: ℕ) : ℝ :=
+    ( 1 + (Real.log 2) + ((2 * (optimal_r a) + 1) / (a + 1) ) * (Real.log
+    (optimal_r a + 1))) / (1 + Real.log 2)
+
+theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :=
+  by sorry
+
+theorem denominator_tendsto_one :
+    Tendsto denominator_of_limit condFilter (nhds 1) :=
+  by sorry
+
+noncomputable def H (a: ℕ) : ℝ :=
+    (second_proposition_bound a (optimal_r a) ) * (1 + Real.log 2)/(Real.log a)
+
+theorem H_is_num_over_denom : H = numerator_of_limit / denominator_of_limit := by
+  ext a
+  simp only [Pi.div_apply]
+  unfold H second_proposition_bound numerator_of_limit denominator_of_limit
+  field_simp
+
+theorem lower_bound_and_H (a: ℕ) (ha : 3 ≤ a) :
+  numerator_of_limit a / denominator_of_limit a / (1 + Real.log 2) * Real.log a
+  = lower_bound_on_optimal_r a := by
+
+  unfold numerator_of_limit denominator_of_limit
+  unfold lower_bound_on_optimal_r second_proposition_bound
+
+  have h_log : Real.log a ≠ 0 := by
+    apply Real.log_ne_zero_of_pos_of_ne_one
+    positivity
+    norm_cast
+    linarith
+
+  have h_log2 : 1 + Real.log 2 ≠ 0 := by
+    positivity
+
+  field_simp
+
+
+theorem limitH : Tendsto H condFilter (nhds 1) := by
+
+  have h1 : (1: ℝ) ≠ 0 := by norm_num
+  have g := Filter.Tendsto.div numerator_tendsto_one denominator_tendsto_one h1
+  have h2 : ((1: ℝ) / 1)= 1 := by norm_num
+  rw [h2] at g
+  rw [<- H_is_num_over_denom] at g
+  exact g
+
 theorem dimension_asymptotic_bound :
     ∀ ε > 0, ∃ (N : ℕ) , ∀ a ≥ N, (Odd a) → (3 ≤ a) →
     (1-ε)/(1 + (Real.log 2)) * (Real.log a)
@@ -215,41 +314,33 @@ theorem dimension_asymptotic_bound :
     dimension_span_first_odd_values_zeta a
     := by
 
-    have r := (fun (a : ℕ) => ((a-1)/2 : ℝ))
-
     intro ε hε
 
-    have hyp : ∃ f : ℕ → ℝ , (IsLittleO condFilter f (fun _ ↦ (1 : ℝ)))
-    ∧ ∀ (a : ℕ) , (Odd a) → (3 ≤ a) →
-    (((1 : ℝ) + f a) / ((1 : ℝ) + (Real.log 2)) ) * (Real.log a)
-    ≤ dimension_span_first_odd_values_zeta a
-    := by sorry
+    have h := limitH
 
-    obtain ⟨ f, h0, h1 ⟩ := hyp
+    have g : ∀ᶠ (x : ℕ) in condFilter, 1 - ε ≤ H x := by
+      apply Filter.Tendsto.eventually h
+      apply eventually_ge_nhds
+      linarith
 
-    have unfold_filter_def := h0.bound hε
-    simp only [Real.norm_eq_abs, norm_one, mul_one] at unfold_filter_def
-    rw [condFilter, eventually_inf_principal] at unfold_filter_def
-    rw [eventually_atTop] at unfold_filter_def
+    rw [condFilter, eventually_inf_principal, eventually_atTop] at g
 
-    rcases unfold_filter_def with ⟨N, hN⟩
+    rcases g with ⟨N, hN⟩
 
     use N
 
     intro a hageN hodd hge3
 
-    have h2 := hN a hageN
-
-    have h3 : |f a| ≤ ε := by
-      apply h2
+    have h3 : 1 - ε ≤ H a := by
       tauto
 
-    have h4 := h1 a hodd hge3
+    have h4 := applying_corollary_to_r a hodd hge3
 
     apply le_trans _ h4
 
-    have h5 := abs_le.1 h3
+    rw [H_is_num_over_denom, Pi.div_apply] at h3
 
-    gcongr
-
-    linarith
+    calc
+    _ ≤ ((numerator_of_limit a) / (denominator_of_limit a)) / (1 + Real.log 2)
+    * Real.log a := by gcongr
+    _ = lower_bound_on_optimal_r a := by apply lower_bound_and_H a hge3
