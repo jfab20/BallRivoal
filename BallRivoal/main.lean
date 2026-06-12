@@ -7,10 +7,6 @@ open Asymptotics
 
 variable (a : ℕ)
 variable (r : ℕ)
-variable (hodd_a  : Odd a)
-variable (h3_le_a  : 3 ≤ a)
-variable (h1_le_r  : 1 ≤ r)
-variable (h2r_le_a : 2 * r < a)
 
 structure hypotheses (a r : ℕ) : Prop where
   hodd_a  : Odd a
@@ -236,8 +232,46 @@ lemma bounded_difference_with_r (a: ℕ) (h5lea: 5 ≤ a):
 lemma bounds_on_r (a : ℕ) (ha: 3 ≤ a) : 1 ≤ optimal_r a ∧ 2 * (optimal_r a) < a
   := by
   constructor
-  · sorry
-  · sorry
+  · unfold optimal_r
+    apply (Nat.one_le_floor_iff _).mpr
+    rw [le_div_iff₀', mul_one]
+    apply (Real.sq_le _).2
+    · constructor
+      · calc
+        -√a ≤ 0 := by
+          apply neg_le_of_neg_le 
+          rw [neg_zero]
+          positivity
+        0 ≤ Real.log a := by positivity
+      · apply (Real.log_le_iff_le_exp _).2
+        · have h1 : 0 ≤ √a := by
+            apply le_of_lt
+            apply Real.sqrt_pos.2
+            norm_cast
+            linarith
+          have h2 := Real.sum_le_exp_of_nonneg h1 4
+          apply le_trans _ h2
+          have h4 : 1 + √a + (√a)^2 / 2 + (√a)^3 / 6
+          = ∑ i ∈ Finset.range 4, √a^i/ (↑i.factorial) := by
+            simp only [Finset.sum_range_succ, Finset.range_one, Finset.sum_singleton, _root_.pow_zero, Nat.factorial, pow_one, mul_one, Nat.mul_one, Nat.cast_succ]
+            ring_nf
+          rw [<- h4]
+          have h5 : √a ^2 = a := by 
+            apply Real.sq_sqrt
+            positivity
+          nth_rw 1 [<- h5]
+
+          have h6 : 0 < (√a / √6 - √6 / 4)^2 + (1 - 3/8) := by 
+            apply add_pos_of_nonneg_of_pos _ _
+            apply sq_nonneg
+            norm_num
+          sorry
+
+        · positivity
+    · linarith
+    · sorry
+  · unfold optimal_r
+    sorry
 
 noncomputable def lower_bound_on_optimal_r (a: ℕ) : ℝ :=
   second_proposition_bound a (optimal_r a)
@@ -255,12 +289,11 @@ lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
   exact cor_lower_bound_dimension a (optimal_r a) hyp
 
 noncomputable def numerator_of_limit (a: ℕ) : ℝ :=
-    (
-      (Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)
-    ) / (Real.log a)
+    ((Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)) 
+    /(Real.log a)
 
 noncomputable def denominator_of_limit (a: ℕ) : ℝ :=
-    ( 1 + (Real.log 2) + ((2 * (optimal_r a) + 1) / (a + 1) ) * (Real.log
+    (1 + (Real.log 2) + ((2 * (optimal_r a) + 1) / (a + 1) ) * (Real.log
     (optimal_r a + 1))) / (1 + Real.log 2)
 
 theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :=
@@ -344,3 +377,5 @@ theorem dimension_asymptotic_bound :
     _ ≤ ((numerator_of_limit a) / (denominator_of_limit a)) / (1 + Real.log 2)
     * Real.log a := by gcongr
     _ = lower_bound_on_optimal_r a := by apply lower_bound_and_H a hge3
+
+
