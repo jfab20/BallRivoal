@@ -284,32 +284,11 @@ lemma bounds_on_r (a : ℕ) (ha: 5 ≤ a) :
       apply (div_lt_iff₀ _).mpr
       · rw [one_mul]
         have h2: 2 < Real.log 5 ^2 := by 
-          have h3 : Real.exp (1 / 10) < 10 / 9 := by
-            have h4 : |(1 / 10 : ℝ)| ≤ 1 := by 
-              norm_num
-            have h5 := Real.abs_exp_sub_one_sub_id_le (h4)
-            apply abs_le.mp at h5
-            nlinarith
-
-          have h4 : Real.exp (3 / 2) = (Real.exp (1 / 10)) ^ 15 := by
-            rw [<- Real.exp_nat_mul]
-            norm_num
-
-          have h5 : Real.exp (3 / 2) < 5 := by
-            rw [h4]
-            have hpow' : (Real.exp (1 / 10)) ^ 15 < (10 / 9) ^ 15 := by gcongr
-            nlinarith
-
-          have h6 : (3 / 2) < Real.log 5 := by
-            exact (Real.lt_log_iff_exp_lt (by positivity)).2 h5
-
-          nlinarith [h6]
+          have _ := Real.log_five_gt_d9
+          nlinarith
         have h3: Real.log 5 ^2 ≤ Real.log a ^2 := by
-            apply (sq_le_sq₀ ?_ ?_).mpr ?_
-            · positivity
-            · positivity
-            · apply Real.log_le_log (by positivity)
-              norm_cast
+            gcongr
+            norm_cast
         linarith
 
       · apply sq_pos_of_pos
@@ -317,6 +296,7 @@ lemma bounds_on_r (a : ℕ) (ha: 5 ≤ a) :
         linarith
         norm_cast
         linarith
+
     exact_mod_cast lt_of_le_of_lt h1 h2
 
 
