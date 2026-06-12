@@ -198,8 +198,7 @@ theorem two_linearly_independent_values_before_169 :
     := by
     sorry
 
-include hodd_a h3_le_a in
-theorem dimension_at_least_log_over_3 :
+theorem dimension_at_least_log_over_3 (hodd_a: Odd a) (h3_le_a: 3 ≤ a) :
     1/3 * (Real.log a) ≤
     dimension_span_first_odd_values_zeta a :=
   by
@@ -209,7 +208,7 @@ def condFilter : Filter ℕ := atTop ⊓ principal {a | Odd a ∧ 3 ≤ a}
 
 noncomputable def optimal_r (a : ℕ) : ℕ := ⌊a/(Real.log a)^2⌋₊
 
-lemma bounded_difference_with_r (a: ℕ) (h5lea: 5 ≤ a):
+lemma bounded_difference_with_r (a: ℕ) :
     |optimal_r a - (a/(Real.log a)^2)| ≤ 1 := by
 
     unfold optimal_r
@@ -229,8 +228,8 @@ lemma bounded_difference_with_r (a: ℕ) (h5lea: 5 ≤ a):
         tauto
       linarith [add_le_add (h0) (h1)]
 
-lemma bounds_on_r (a : ℕ) (ha: 3 ≤ a) : 1 ≤ optimal_r a ∧ 2 * (optimal_r a) < a
-  := by
+lemma bounds_on_r (a : ℕ) (ha: 5 ≤ a) :
+    1 ≤ optimal_r a ∧ 2 * (optimal_r a) < a := by
   constructor
   · unfold optimal_r
     apply (Nat.one_le_floor_iff _).mpr
@@ -260,18 +259,66 @@ lemma bounds_on_r (a : ℕ) (ha: 3 ≤ a) : 1 ≤ optimal_r a ∧ 2 * (optimal_r
             apply Real.sq_sqrt
             positivity
           nth_rw 1 [<- h5]
-
-          have h6 : 0 < (√a / √6 - √6 / 4)^2 + (1 - 3/8) := by 
-            apply add_pos_of_nonneg_of_pos _ _
-            apply sq_nonneg
-            norm_num
-          sorry
-
+          set x : ℝ := √a with hx
+          have h6 : 0 ≤ x^2 - 3 * x + 6 := by
+            have hsq : 0 ≤ (x - 3 / 2)^2 := by positivity
+            nlinarith
+          have h7 : 0 ≤ x^3 - 3 * x ^2 + 6 * x := by
+            have hsq : 0 ≤ (x - 3 / 2)^2 := by positivity
+            have hx : 0 ≤ x := by positivity
+            nlinarith
+          nlinarith
         · positivity
     · linarith
-    · sorry
+    · apply sq_pos_of_pos
+      apply (Real.log_pos_iff ?_).mpr ?_
+      linarith
+      norm_cast
+      linarith
   · unfold optimal_r
-    sorry
+    have h1: 2 * ⌊a / Real.log a ^ 2⌋₊  ≤ 2 * (a / (Real.log a)^2) := by 
+      have _ := Nat.floor_le (by positivity : 0 ≤ (a : ℝ) / Real.log a ^ 2)
+      linarith
+    have h2 : 2 * (a / Real.log a ^ 2) < (a : ℝ) := by
+      field_simp
+      apply (div_lt_iff₀ _).mpr
+      · rw [one_mul]
+        have h2: 2 < Real.log 5 ^2 := by 
+          have h3 : Real.exp (1 / 10) < 10 / 9 := by
+            have h4 : |(1 / 10 : ℝ)| ≤ 1 := by 
+              norm_num
+            have h5 := Real.abs_exp_sub_one_sub_id_le (h4)
+            apply abs_le.mp at h5
+            nlinarith
+
+          have h4 : Real.exp (3 / 2) = (Real.exp (1 / 10)) ^ 15 := by
+            rw [<- Real.exp_nat_mul]
+            norm_num
+
+          have h5 : Real.exp (3 / 2) < 5 := by
+            rw [h4]
+            have hpow' : (Real.exp (1 / 10)) ^ 15 < (10 / 9) ^ 15 := by gcongr
+            nlinarith
+
+          have h6 : (3 / 2) < Real.log 5 := by
+            exact (Real.lt_log_iff_exp_lt (by positivity)).2 h5
+
+          nlinarith [h6]
+        have h3: Real.log 5 ^2 ≤ Real.log a ^2 := by
+            apply (sq_le_sq₀ ?_ ?_).mpr ?_
+            · positivity
+            · positivity
+            · apply Real.log_le_log (by positivity)
+              norm_cast
+        linarith
+
+      · apply sq_pos_of_pos
+        apply (Real.log_pos_iff ?_).mpr ?_
+        linarith
+        norm_cast
+        linarith
+    exact_mod_cast lt_of_le_of_lt h1 h2
+
 
 noncomputable def lower_bound_on_optimal_r (a: ℕ) : ℝ :=
   second_proposition_bound a (optimal_r a)
@@ -279,14 +326,82 @@ noncomputable def lower_bound_on_optimal_r (a: ℕ) : ℝ :=
 lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
      lower_bound_on_optimal_r a ≤ dimension_span_first_odd_values_zeta a  := by
 
-  have hyp : hypotheses a (optimal_r a) := {
-    hodd_a := hodd
-    h3_le_a := h3lea
-    h1_le_r := (bounds_on_r a h3lea).left
-    h2r_le_a := (bounds_on_r a h3lea).right
-  }
+  by_cases ha: a = 3
+  · subst ha
+    unfold lower_bound_on_optimal_r second_proposition_bound optimal_r
+    unfold dimension_span_first_odd_values_zeta
+    push_cast
+    have h_floor : ⌊3 / Real.log 3 ^ 2⌋₊ = 2 := by
+       apply (Nat.floor_eq_iff ?_).mpr ?_
+       positivity
+       constructor
+       · field_simp
+         have _ := Real.log_three_lt_d9
+         calc 
+          2 * Real.log 3 ^ 2 ≤ 2 * (1.0986122888)^2 := by gcongr
+          _ ≤ 3 := by norm_num
+       · norm_num
+         field_simp
+         apply (one_lt_sq_iff₀ ?_).mpr ?_
+         positivity
+         apply (Real.lt_log_iff_exp_lt _).mpr
+         · linarith [Real.exp_one_lt_d9]
+         · linarith
+    rw [h_floor]
+    field_simp
+    simp
+    norm_num
 
-  exact cor_lower_bound_dimension a (optimal_r a) hyp
+    have h_dim :
+    (4 * (1 + Real.log 2) + 5 * Real.log 3) 
+    ≤ (4 * (1 + Real.log 2) + 5 * Real.log 3) 
+    * Module.finrank ℚ (Submodule.span ℚ (insert 1 (Set.range (first_odd_zeta_values 3)))) := by
+      apply le_mul_of_one_le_right
+      positivity
+
+      norm_cast
+
+      apply Nat.one_le_iff_ne_zero.mpr
+      apply Nat.ne_zero_iff_zero_lt.mpr
+
+      have h_finite : Module.Finite ℚ ↥(Submodule.span ℚ (insert (1 : ℝ) (Set.range (first_odd_zeta_values 3)))) := by
+        apply Module.Finite.iff_fg.mpr
+        apply Submodule.fg_span
+        unfold first_odd_zeta_values
+        apply Set.Finite.insert
+        apply Set.finite_range
+      
+      rw [Module.finrank_pos_iff]
+      
+      have h1 : (1 : ℝ) ∈ Submodule.span ℚ (insert 1 (Set.range (first_odd_zeta_values 3))) := by
+        apply Submodule.subset_span
+        apply Set.mem_insert
+      
+      apply nontrivial_of_ne ⟨1, h1⟩ 0
+      intro h_eq
+      injection h_eq with h_val
+      exact one_ne_zero h_val
+
+
+    apply le_trans _ h_dim
+    have h1 : Real.log 2 ≤ Real.log 3 := Real.log_le_log (by norm_num) (by norm_num)
+    have h2 : 0 ≤ Real.log 3 := by positivity
+
+    linarith
+
+  · have ha5 : 5 ≤ a := by 
+      rcases hodd with ⟨ k, hk ⟩
+      omega
+
+    have hyp : hypotheses a (optimal_r a) := {
+      hodd_a := hodd
+      h3_le_a := h3lea
+      h1_le_r := (bounds_on_r a ha5).left
+      h2r_le_a := (bounds_on_r a ha5).right
+    }
+
+    exact cor_lower_bound_dimension a (optimal_r a) hyp
+
 
 noncomputable def numerator_of_limit (a: ℕ) : ℝ :=
     ((Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)) 
@@ -379,3 +494,5 @@ theorem dimension_asymptotic_bound :
     _ = lower_bound_on_optimal_r a := by apply lower_bound_and_H a hge3
 
 
+theorem h_floor : ⌊3 / Real.log 3 ^ 2⌋₊ = 2 := by 
+  apply?
