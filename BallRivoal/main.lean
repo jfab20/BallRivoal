@@ -234,7 +234,7 @@ lemma one_le_self_over_log_sq (a : ℕ) (ha : 2 ≤ a) : 1 ≤ a / (Real.log a)^
    · constructor
      · calc
        -√a ≤ 0 := by
-         apply neg_le_of_neg_le 
+         apply neg_le_of_neg_le
          rw [neg_zero]
          positivity
        0 ≤ Real.log a := by positivity
@@ -251,7 +251,7 @@ lemma one_le_self_over_log_sq (a : ℕ) (ha : 2 ≤ a) : 1 ≤ a / (Real.log a)^
            simp only [Finset.sum_range_succ, Finset.range_one, Finset.sum_singleton, _root_.pow_zero, Nat.factorial, pow_one, mul_one, Nat.mul_one, Nat.cast_succ]
            ring_nf
          rw [<- h4]
-         have h5 : √a ^2 = a := by 
+         have h5 : √a ^2 = a := by
            apply Real.sq_sqrt
            positivity
          nth_rw 1 [<- h5]
@@ -270,7 +270,7 @@ lemma one_le_self_over_log_sq (a : ℕ) (ha : 2 ≤ a) : 1 ≤ a / (Real.log a)^
      apply (Real.log_pos_iff ?_).mpr ?_
      linarith
      norm_cast
- 
+
 lemma bounds_on_r (a : ℕ) (ha: 5 ≤ a) :
     1 ≤ optimal_r a ∧ 2 * (optimal_r a) < a := by
   constructor
@@ -279,14 +279,14 @@ lemma bounds_on_r (a : ℕ) (ha: 5 ≤ a) :
     apply one_le_self_over_log_sq
     linarith
   · unfold optimal_r
-    have h1: 2 * ⌊a / Real.log a ^ 2⌋₊  ≤ 2 * (a / (Real.log a)^2) := by 
+    have h1: 2 * ⌊a / Real.log a ^ 2⌋₊  ≤ 2 * (a / (Real.log a)^2) := by
       have _ := Nat.floor_le (by positivity : 0 ≤ (a : ℝ) / Real.log a ^ 2)
       linarith
     have h2 : 2 * (a / Real.log a ^ 2) < (a : ℝ) := by
       field_simp
       apply (div_lt_iff₀ _).mpr
       · rw [one_mul]
-        have h2: 2 < Real.log 5 ^2 := by 
+        have h2: 2 < Real.log 5 ^2 := by
           have _ := Real.log_five_gt_d9
           nlinarith
         have h3: Real.log 5 ^2 ≤ Real.log a ^2 := by
@@ -320,7 +320,7 @@ lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
        constructor
        · field_simp
          have _ := Real.log_three_lt_d9
-         calc 
+         calc
           2 * Real.log 3 ^ 2 ≤ 2 * (1.0986122888)^2 := by gcongr
           _ ≤ 3 := by norm_num
        · norm_num
@@ -336,8 +336,8 @@ lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
     norm_num
 
     have h_dim :
-    (4 * (1 + Real.log 2) + 5 * Real.log 3) 
-    ≤ (4 * (1 + Real.log 2) + 5 * Real.log 3) 
+    (4 * (1 + Real.log 2) + 5 * Real.log 3)
+    ≤ (4 * (1 + Real.log 2) + 5 * Real.log 3)
     * Module.finrank ℚ (Submodule.span ℚ (insert 1 (Set.range (first_odd_zeta_values 3)))) := by
       apply le_mul_of_one_le_right
       positivity
@@ -353,13 +353,13 @@ lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
         unfold first_odd_zeta_values
         apply Set.Finite.insert
         apply Set.finite_range
-      
+
       rw [Module.finrank_pos_iff]
-      
+
       have h1 : (1 : ℝ) ∈ Submodule.span ℚ (insert 1 (Set.range (first_odd_zeta_values 3))) := by
         apply Submodule.subset_span
         apply Set.mem_insert
-      
+
       apply nontrivial_of_ne ⟨1, h1⟩ 0
       intro h_eq
       injection h_eq with h_val
@@ -372,7 +372,7 @@ lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
 
     linarith
 
-  · have ha5 : 5 ≤ a := by 
+  · have ha5 : 5 ≤ a := by
       rcases hodd with ⟨ k, hk ⟩
       omega
 
@@ -387,17 +387,198 @@ lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
 
 
 noncomputable def numerator_of_limit (a: ℕ) : ℝ :=
-    ((Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2)) 
+    ((Real.log (optimal_r a) ) + (a- optimal_r a)/(a+1) * (Real.log 2))
     /(Real.log a)
 
 noncomputable def denominator_of_limit (a: ℕ) : ℝ :=
     (1 + (Real.log 2) + ((2 * (optimal_r a) + 1) / (a + 1) ) * (Real.log
     (optimal_r a + 1))) / (1 + Real.log 2)
 
-theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :=
-  by sorry
 
-theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 1) 
+lemma logtoinfinity : Tendsto (fun (n : ℕ) => Real.log ↑n) atTop atTop := by
+  have h1 : (fun (n : ℕ) => Real.log n) = Real.log ∘ (fun (n: ℕ) => (n: ℝ)) := by
+    ext n
+    simp
+  rw [h1]
+  apply Tendsto.comp Real.tendsto_log_atTop tendsto_natCast_atTop_atTop
+
+
+theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) := by
+
+  let g1 (a : ℕ) := 1/(Real.log a) * Real.log (a/(Real.log a)^2)
+  let g2 (a : ℕ) := 1/(Real.log a) * (Real.log (optimal_r a) - Real.log (a/(Real.log a)^2))
+  let g3 (a : ℕ) := a * Real.log 2 / ((a + 1) * Real.log a) * (1 - 1 / (Real.log a)^2)
+  let g4 (a : ℕ) := Real.log 2 / ((a + 1) * Real.log a) * (a / (Real.log a)^2 - optimal_r a)
+  let f1 (a : ℕ) :=  1 - 2 * Real.log (Real.log a) / (Real.log a)
+  let f2 (a : ℕ) := 2 * Real.log (Real.log ↑a) / (Real.log ↑a)
+  let f3 (a : ℕ) := Real.log (Real.log ↑a) / (Real.log ↑a)
+  let f4 (a : ℕ) := Real.log a
+
+  have g1eqff1 : f1 =ᶠ[condFilter] g1 := by
+    apply Filter.eventuallyEq_iff_exists_mem.mpr _
+    use {a | Odd a ∧ 3 ≤ a}
+    constructor
+    · unfold condFilter
+      exact mem_inf_of_right fun ⦃a⦄ a_1 => a_1
+    · intro n hn
+      simp at hn
+      unfold f1 g1
+      have lognezero : Real.log n ≠ 0 := by
+        apply Real.log_ne_zero.2
+        norm_cast
+        constructor
+        · omega
+        · constructor
+          · omega
+          · tauto
+      field_simp
+      rw [Real.log_div, Real.log_pow (Real.log n) 2]
+      rfl
+      norm_cast
+      omega
+      apply pow_ne_zero 2 _
+      apply lognezero
+
+  have g1tendsto1 : Tendsto g1 condFilter (nhds 1) := by
+
+
+
+    have f3tendsto0 : Tendsto f3 condFilter (nhds 0) := by
+      unfold condFilter
+      apply Filter.tendsto_inf_left
+      let f5 (x : ℝ) := Real.log x / x
+      have h1 : f3 = f5 ∘ f4 := by
+          ext a
+          unfold f3 f4 f5
+          simp
+      rw [h1]
+      unfold f4
+      have f5tozero : Tendsto f5 atTop (nhds 0) := by
+        have h2 := isLittleO_log_rpow_atTop (by norm_num : (0 < (1: ℝ)))
+        have hgf : ∀ (x: ℝ), x^(1 : ℝ) = 0 → Real.log x = 0 := by
+          intro x hx
+          simp
+          rw[(by norm_num : x ^ (1 : ℝ) = x)] at hx
+          tauto
+        apply (Asymptotics.isLittleO_iff_tendsto hgf).mp at h2
+        unfold f5
+        rw [(by norm_num : (fun x => (Real.log x)/x^(1 : ℝ)) = (fun x => (Real.log x)/x))] at h2
+        exact h2
+
+      apply Tendsto.comp f5tozero logtoinfinity
+
+    have f2tendsto0 : Tendsto f2 condFilter (nhds 0) := by
+        unfold f2
+        rw [(by norm_num : (0 : ℝ) = 2 * 0)]
+        unfold f3 at f3tendsto0
+        have eqtrivial :(fun (a : ℕ) => 2 * Real.log (Real.log a) / Real.log a) =
+         (fun (a : ℕ) => 2 * (Real.log (Real.log a) / Real.log a)) := by
+         field_simp
+        rw [eqtrivial]
+        apply Filter.Tendsto.const_mul 2 f3tendsto0
+
+
+    have g1eq (a : ℕ) (ha : 3 ≤ a): g1 a = f1 a:= by
+      have loganezero : Real.log a ≠ 0 := by
+        apply Real.log_ne_zero.mpr _
+        norm_cast
+        constructor
+        · omega
+        · constructor
+          · omega
+          · tauto
+
+      unfold g1 f1
+      rw [Real.log_div]
+      · rw[mul_sub (1 / Real.log ↑a) (Real.log ↑a) (Real.log (Real.log ↑a ^ 2))]
+        field_simp
+        ring_nf
+        simp
+        field_simp
+
+      · norm_cast
+        omega
+
+      · apply pow_ne_zero 2 _
+        exact loganezero
+
+    apply Filter.Tendsto.congr' g1eqff1 _
+    unfold f1
+    nth_rw 2 [(by norm_num : (1 : ℝ) = (1 : ℝ) - (0 : ℝ))]
+    unfold f2 at f2tendsto0
+    apply Filter.Tendsto.const_sub 1 f2tendsto0
+
+  have g2tendsto0 : Tendsto g2 condFilter (nhds 0) := by sorry
+
+  have g3tendsto0 : Tendsto g3 condFilter (nhds 0) := by --&&
+    let f1 := (fun (a : ℕ) => 1 - 1 / ((a : ℝ) + 1))
+    let f2 := (fun (a : ℕ) => 1 - 1 / (Real.log a)^2)
+    let f3 := (fun (a : ℕ) => Real.log 2 / (Real.log a))
+    have g3eq : g3 = (fun (a : ℕ) =>  f1 a * f2 a * f3 a):= by
+      ext a
+      unfold g3 f1 f2 f3
+      field_simp
+      ring
+
+    have h1 : Tendsto f1 condFilter (𝓝 0) := by sorry
+    have h2 : Tendsto f2 condFilter (𝓝 0) := by sorry
+    have h3 : Tendsto f3 condFilter (𝓝 0) := by
+      have h31 : (fun (a : ℕ) => Real.log 2 / Real.log a)
+      = (fun (a : ℕ) => Real.log 2 * (1 / Real.log a)) := by
+        ext a
+        field_simp
+      unfold f3
+      rw [h31]
+      rw[(by norm_num : (0 : ℝ) = Real.log 2 * 0)]
+      have invlogtendsto0 : Tendsto (fun (a : ℕ) => 1 / (Real.log a)) condFilter (nhds (0)) := by
+
+        sorry
+      apply Tendsto.const_mul (Real.log 2) invlogtendsto0
+
+
+
+    have h12 : Tendsto (f1 * f2) condFilter (𝓝 (0 * 0)) := by
+      exact Tendsto.mul h1 h2
+    have h123 : Tendsto (f1 * f2 * f3) condFilter (𝓝 (0 * 0 * 0)) := by
+      exact Tendsto.mul h12 h3
+
+
+    rw[(by norm_num :  (0 : ℝ) = 0 * 0 * 0), g3eq]
+
+    apply Tendsto.mul _ _
+    apply Tendsto.mul _ _
+    exact h1
+    exact h2
+    exact h3
+
+
+
+  have g4tendsto0 : Tendsto g4 condFilter (nhds 0) := by sorry
+
+  have geq : numerator_of_limit = g1 + g2 + g3 + g4 := by
+    ext a
+    repeat rw [Pi.add_apply]
+    unfold numerator_of_limit g1 g2 g3 g4
+    field_simp
+    ring
+
+  have h1 : Tendsto (g1 + g2) condFilter (nhds 1) := by
+    rw [<- add_zero 1]
+    apply Filter.Tendsto.add g1tendsto1 g2tendsto0
+  have h2 : Tendsto (g1 + g2 + g3) condFilter (nhds 1) := by
+    rw [<- add_zero 1]
+    apply Filter.Tendsto.add h1 g3tendsto0
+  have h3 : Tendsto (g1 + g2 + g3 + g4) condFilter (nhds 1) := by
+    rw [<- add_zero 1]
+    apply Filter.Tendsto.add h2 g4tendsto0
+
+  rw [geq]
+  exact h3
+
+
+
+
+theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 1)
   := by
   unfold denominator_of_limit
 
@@ -405,7 +586,7 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
     positivity
 
   have h : (fun a => (1 + Real.log 2 + (2 * ↑(optimal_r a) + 1) / (↑a + 1) * Real.log (↑(optimal_r a) + 1)) / (1 + Real.log 2))
- = (fun a => ( 
+ = (fun a => (
  ((2 * ↑(optimal_r a) + 1) / (↑a + 1) * Real.log (↑(optimal_r a) + 1)) * 1/(1 + Real.log 2) + 1)
  ) := by
     ext a
@@ -427,22 +608,15 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
 
   let g (a: ℕ) := 3 * (Real.log 2)/(Real.log a)^2 + 3 * (Real.log a) / (Real.log a)^2 - 6 * (Real.log (Real.log a))/(Real.log a)^2
 
-  have gtendstozero : Tendsto g condFilter (nhds 0) := by 
+  have gtendstozero : Tendsto g condFilter (nhds 0) := by
     let g1 (a: ℕ) := (3 * (Real.log 2)) * (1/(Real.log a)^2)
     let g2 (a: ℕ) := (3) * (1/(Real.log a))
     let g3 (a: ℕ) := (- 6) * ((Real.log (Real.log a))/(Real.log a)^2)
     let g4 (x : ℝ) := x^2
     let g5 (n : ℕ) := Real.log n
 
-    have logtoinfinity : Tendsto (fun (n : ℕ) => Real.log ↑n) atTop atTop := by
-      have h1 : (fun (n : ℕ) => Real.log n) = Real.log ∘ (fun (n: ℕ) => (n: ℝ)) := by 
-        ext n
-        simp
-      rw [h1]
-      apply Tendsto.comp Real.tendsto_log_atTop tendsto_natCast_atTop_atTop
 
-
-    have g1tendstozero : Tendsto g1 condFilter (nhds 0) := by 
+    have g1tendstozero : Tendsto g1 condFilter (nhds 0) := by
       have h1 : 0 = ( 3 * Real.log 2) * 0 := by norm_num
       rw [h1]
       unfold g1
@@ -456,7 +630,7 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
         simp
       rw [comp]
 
-      have h6 : Tendsto g4 atTop atTop := by 
+      have h6 : Tendsto g4 atTop atTop := by
         unfold g4
         rw [(by norm_num : (fun x => x^(2 : ℕ)) = (fun x => x^(2: ℝ)))]
         have h2: (0 < (2: ℝ)) := by positivity
@@ -468,7 +642,7 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
 
       exact logtoinfinity
 
-    have g2tendstozero : Tendsto g2 condFilter (nhds 0) := by 
+    have g2tendstozero : Tendsto g2 condFilter (nhds 0) := by
       unfold g2
       rw [(by norm_num : (0 : ℝ) = 3 * 0)]
       apply Filter.Tendsto.const_mul (3: ℝ) _
@@ -477,14 +651,14 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
       apply Filter.tendsto_inf_left
       exact logtoinfinity
 
-    have g3tendstozero : Tendsto g3 condFilter (nhds 0) := by 
+    have g3tendstozero : Tendsto g3 condFilter (nhds 0) := by
       unfold g3
       rw [(by norm_num : (0: ℝ) = (-6) * 0)]
       apply Filter.Tendsto.const_mul (-6) _
       unfold condFilter
       apply Filter.tendsto_inf_left
-      let g6 (x : ℝ) := (Real.log x )/x^2
-      have h1 : (fun (x: ℕ) => Real.log (Real.log ↑x) / Real.log ↑x ^ 2) 
+      let g6 (x : ℝ) := (Real.log x)/x^2
+      have h1 : (fun (x: ℕ) => Real.log (Real.log ↑x) / Real.log ↑x ^ 2)
         = g6 ∘ g5 := by
           ext n
           unfold g6 g5
@@ -493,10 +667,10 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
       unfold g5
       have g6tozero : Tendsto g6 atTop (nhds 0) := by
         have h2 := isLittleO_log_rpow_atTop (by norm_num : (0 < (2: ℝ)))
-        have hgf : ∀ (x: ℝ), x^(2 : ℝ) = 0 → Real.log x = 0 := by 
+        have hgf : ∀ (x: ℝ), x^(2 : ℝ) = 0 → Real.log x = 0 := by
           intro x hx
           simp
-          norm_cast at hx 
+          norm_cast at hx
           apply (sq_eq_zero_iff).mp at hx
           tauto
         apply (Asymptotics.isLittleO_iff_tendsto hgf).mp at h2
@@ -531,9 +705,9 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
     · apply Real.log_nonneg
       linarith
 
-  have h2 (x : ℕ) : f x ≤ g x := by 
+  have h2 (x : ℕ) : f x ≤ g x := by
     unfold f g optimal_r
-    by_cases hx : x = 0 
+    by_cases hx : x = 0
     · subst hx
       simp
     · by_cases hx2 : x = 1
@@ -546,29 +720,29 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
           apply Real.log_ne_zero.mpr
           norm_cast
 
-        have hx_over_log_sq : 1 ≤ x / (Real.log x)^2 := by 
-          apply one_le_self_over_log_sq 
+        have hx_over_log_sq : 1 ≤ x / (Real.log x)^2 := by
+          apply one_le_self_over_log_sq
           norm_cast
-         
-        calc 
-        (2 * ⌊x / Real.log x ^ 2⌋₊ + 1) / 
-        (x + 1) * Real.log (⌊x / Real.log x ^ 2⌋₊ + 1) ≤ 
-        ((2 * (x / Real.log x ^ 2) + 1) / 
-        (x + 1)) * Real.log ((x / Real.log x ^ 2) + 1) := by 
+
+        calc
+        (2 * ⌊x / Real.log x ^ 2⌋₊ + 1) /
+        (x + 1) * Real.log (⌊x / Real.log x ^ 2⌋₊ + 1) ≤
+        ((2 * (x / Real.log x ^ 2) + 1) /
+        (x + 1)) * Real.log ((x / Real.log x ^ 2) + 1) := by
           gcongr
           apply Real.log_nonneg
           linarith
           repeat
             apply Nat.floor_le
             positivity
-        _ ≤ ((2 * (x / Real.log x ^ 2) + 1) / x) * Real.log ((x / Real.log x ^ 2) + 1) := by 
+        _ ≤ ((2 * (x / Real.log x ^ 2) + 1) / x) * Real.log ((x / Real.log x ^ 2) + 1) := by
           gcongr
           apply Real.log_nonneg
           simp
           positivity
           linarith
-        _ ≤ ((3 * (x / Real.log x ^2) ) / x) * Real.log ((x / Real.log x ^ 2) + 1) 
-          := by 
+        _ ≤ ((3 * (x / Real.log x ^2) ) / x) * Real.log ((x / Real.log x ^ 2) + 1)
+          := by
              gcongr
              apply Real.log_nonneg
              repeat linarith
@@ -581,13 +755,13 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
             rw [Real.log_mul]
             simp
             linarith
-        _ = (3/(Real.log x)^2) * (Real.log (2) + (Real.log x 
+        _ = (3/(Real.log x)^2) * (Real.log (2) + (Real.log x
             - 2 * Real.log (Real.log x)) ) := by
             rw [Real.log_div]
             simp
             norm_cast
             exact pow_ne_zero 2 hlogx_ne_zero
-        _ = 3 * Real.log 2 / Real.log x ^ 2 + 3 * Real.log x / Real.log x ^2 - 6 * Real.log (Real.log x) / Real.log x ^ 2 
+        _ = 3 * Real.log 2 / Real.log x ^ 2 + 3 * Real.log x / Real.log x ^2 - 6 * Real.log (Real.log x) / Real.log x ^ 2
           := by ring
 
 
