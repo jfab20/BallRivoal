@@ -525,15 +525,29 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
       field_simp
       ring
 
-    have h1 : Tendsto f1 condFilter (𝓝 1) := by sorry
-    have h2 : Tendsto f2 condFilter (𝓝 1) := by
-      have f2eq : f2 = 1 - (fun (a : ℕ) => 1 / Real.log a ^ 2) := by
-        ext a
-        unfold f2
+    have h1 : Tendsto f1 condFilter (𝓝 1) := by
+      have invaadd1 : Tendsto (fun (a : ℕ) => (1 : ℝ) / (a + 1)) condFilter (nhds 0) := by
+        apply Tendsto.const_div_atTop _ 1
+        apply Tendsto.atTop_of_add_const (-1) _
         simp
+        unfold condFilter
+        apply Filter.tendsto_inf_left
+        apply tendsto_natCast_atTop_atTop
       rw[(by norm_num : (1 : ℝ) = 1 - 0)]
-      apply Tendsto.const_sub 1 invlogtozero
+      unfold f1
+      apply Tendsto.const_sub 1 invaadd1
 
+    have h2 : Tendsto f2 condFilter (𝓝 1) := by
+      have invlogtriv : (fun (a : ℕ) => 1 / Real.log a ^ 2) = (fun (a : ℕ) => (1 / Real.log a) * (1 / Real.log a)) := by
+        ext a
+        field_simp
+      have invlogsqtozero : Tendsto (fun (a : ℕ) => 1 / Real.log a ^ 2) condFilter (nhds 0) := by
+        rw[invlogtriv]
+        rw[<- mul_zero 0]
+        exact Tendsto.mul invlogtozero invlogtozero
+      rw[(by norm_num : (1 : ℝ) = 1 - 0)]
+      unfold f2
+      apply Tendsto.const_sub 1 invlogsqtozero
 
     have h3 : Tendsto f3 condFilter (𝓝 0) := by
       have h31 : (fun (a : ℕ) => Real.log 2 / Real.log a)
@@ -547,13 +561,13 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
 
 
 
-    have h12 : Tendsto (f1 * f2) condFilter (𝓝 (0 * 0)) := by
+    have h12 : Tendsto (f1 * f2) condFilter (𝓝 (1 * 1)) := by
       exact Tendsto.mul h1 h2
-    have h123 : Tendsto (f1 * f2 * f3) condFilter (𝓝 (0 * 0 * 0)) := by
+    have h123 : Tendsto (f1 * f2 * f3) condFilter (𝓝 (1 * 1 * 0)) := by
       exact Tendsto.mul h12 h3
 
 
-    rw[(by norm_num :  (0 : ℝ) = 0 * 0 * 0), g3eq]
+    rw[(by norm_num :  (0 : ℝ) = 1 * 1 * 0), g3eq]
 
     apply Tendsto.mul _ _
     apply Tendsto.mul _ _
