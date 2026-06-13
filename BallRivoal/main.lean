@@ -402,6 +402,11 @@ lemma logtoinfinity : Tendsto (fun (n : ℕ) => Real.log ↑n) atTop atTop := by
   rw [h1]
   apply Tendsto.comp Real.tendsto_log_atTop tendsto_natCast_atTop_atTop
 
+lemma invlogtozero : Tendsto (fun (n : ℕ) => 1 / Real.log ↑n) condFilter (nhds 0) := by
+  apply Tendsto.const_div_atTop _ 1
+  unfold condFilter
+  apply Filter.tendsto_inf_left
+  exact logtoinfinity
 
 theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) := by
 
@@ -520,8 +525,16 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
       field_simp
       ring
 
-    have h1 : Tendsto f1 condFilter (𝓝 0) := by sorry
-    have h2 : Tendsto f2 condFilter (𝓝 0) := by sorry
+    have h1 : Tendsto f1 condFilter (𝓝 1) := by sorry
+    have h2 : Tendsto f2 condFilter (𝓝 1) := by
+      have f2eq : f2 = 1 - (fun (a : ℕ) => 1 / Real.log a ^ 2) := by
+        ext a
+        unfold f2
+        simp
+      rw[(by norm_num : (1 : ℝ) = 1 - 0)]
+      apply Tendsto.const_sub 1 invlogtozero
+
+
     have h3 : Tendsto f3 condFilter (𝓝 0) := by
       have h31 : (fun (a : ℕ) => Real.log 2 / Real.log a)
       = (fun (a : ℕ) => Real.log 2 * (1 / Real.log a)) := by
@@ -530,10 +543,7 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
       unfold f3
       rw [h31]
       rw[(by norm_num : (0 : ℝ) = Real.log 2 * 0)]
-      have invlogtendsto0 : Tendsto (fun (a : ℕ) => 1 / (Real.log a)) condFilter (nhds (0)) := by
-
-        sorry
-      apply Tendsto.const_mul (Real.log 2) invlogtendsto0
+      apply Tendsto.const_mul (Real.log 2) invlogtozero
 
 
 
@@ -646,10 +656,7 @@ theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 
       unfold g2
       rw [(by norm_num : (0 : ℝ) = 3 * 0)]
       apply Filter.Tendsto.const_mul (3: ℝ) _
-      apply Tendsto.const_div_atTop ?_ 1
-      unfold condFilter
-      apply Filter.tendsto_inf_left
-      exact logtoinfinity
+      exact invlogtozero
 
     have g3tendstozero : Tendsto g3 condFilter (nhds 0) := by
       unfold g3
