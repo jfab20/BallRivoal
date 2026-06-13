@@ -302,7 +302,6 @@ lemma bounds_on_r (a : ℕ) (ha: 5 ≤ a) :
 
     exact_mod_cast lt_of_le_of_lt h1 h2
 
-
 noncomputable def lower_bound_on_optimal_r (a: ℕ) : ℝ :=
   second_proposition_bound a (optimal_r a)
 
@@ -394,7 +393,6 @@ noncomputable def denominator_of_limit (a: ℕ) : ℝ :=
     (1 + (Real.log 2) + ((2 * (optimal_r a) + 1) / (a + 1) ) * (Real.log
     (optimal_r a + 1))) / (1 + Real.log 2)
 
-
 lemma logtoinfinity : Tendsto (fun (n : ℕ) => Real.log ↑n) atTop atTop := by
   have h1 : (fun (n : ℕ) => Real.log n) = Real.log ∘ (fun (n: ℕ) => (n: ℝ)) := by
     ext n
@@ -444,9 +442,8 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
       apply pow_ne_zero 2 _
       apply lognezero
 
+
   have g1tendsto1 : Tendsto g1 condFilter (nhds 1) := by
-
-
 
     have f3tendsto0 : Tendsto f3 condFilter (nhds 0) := by
       unfold condFilter
@@ -513,8 +510,109 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
     unfold f2 at f2tendsto0
     apply Filter.Tendsto.const_sub 1 f2tendsto0
 
-  have g2tendsto0 : Tendsto g2 condFilter (nhds 0) := by sorry
+  -- HERE STARTS THE PROOF G2 TENDS TO 0 --
+  have g2tendsto0 : Tendsto g2 condFilter (nhds 0) := by 
+    rw [(by norm_num : (0 : ℝ) = 0 * 0)]
+    apply Filter.Tendsto.mul _ _
+    apply Tendsto.const_div_atTop ?_ 1
+    unfold condFilter
+    apply Filter.tendsto_inf_left
+    exact logtoinfinity
 
+    have h : (fun x => Real.log (optimal_r x) - Real.log (x / Real.log x ^ 2)) 
+    =ᶠ[condFilter] 
+    ( fun x => 
+        Real.log (1 + 
+        ( ( optimal_r x - x/(Real.log x)^2 )/( x/(Real.log x)^2 ) )
+        )
+      )
+    := by
+      apply Filter.eventuallyEq_iff_exists_mem.mpr _
+      use {x | 2 ≤ x}
+      constructor
+      unfold condFilter
+      apply Filter.mem_inf_of_left
+      exact mem_atTop 2
+      intro x hx
+      simp
+      simp at hx
+      · unfold optimal_r
+        have h1 := one_le_self_over_log_sq x hx
+        have h2 : Real.log x ≠ 0 := by 
+          apply Real.log_ne_zero.mpr
+          norm_cast
+          grind
+        have h3 : x ≠ 0 := by omega
+        have h4 : 1 + (↑⌊↑x / Real.log ↑x ^ 2⌋₊ - (↑x / Real.log ↑x ^ 2)) / (↑x / Real.log ↑x ^ 2) = (↑⌊↑x / Real.log ↑x ^ 2⌋₊)/(x / Real.log x ^ 2) := by 
+          field_simp
+          ring
+        rw [h4]
+        nth_rw 2 [Real.log_div]
+        norm_cast 
+        intro h5
+        apply (Nat.floor_eq_zero).mp at h5
+        linarith
+        norm_num
+        exact ⟨ by omega, by omega, by linarith ⟩
+
+    apply Filter.Tendsto.congr' (Filter.EventuallyEq.symm h) _
+
+    replace h : (fun (x: ℕ) => Real.log (1 + (↑(optimal_r x) - ↑x / Real.log ↑x ^ 2) / (↑x / Real.log ↑x ^ 2))) = (fun x => Real.log x) ∘ (fun (x: ℕ) => 1 + (↑(optimal_r x) - ↑x / Real.log ↑x ^ 2) / (↑x / Real.log ↑x ^ 2)) := by
+      ext x
+      simp
+    rw [h]
+
+    let g := (fun (x: ℕ) => 1 + (↑(optimal_r x) - ↑x / Real.log ↑x ^ 2) / (↑x / Real.log ↑x ^ 2))
+    let hg : Tendsto g condFilter (nhds 1) := by 
+      rw [(by norm_num : (1 :ℝ) = 1+0)]
+      apply Filter.Tendsto.const_add 1
+      unfold condFilter
+      apply Filter.tendsto_inf_left
+      have changesign : (fun (x : ℕ) => (↑(optimal_r x) - ↑x / Real.log ↑x ^ 2) / (↑x / Real.log ↑x ^ 2) ) = (fun (x : ℕ) => -( (↑x / Real.log ↑x ^ 2-↑(optimal_r x) ) / (↑x / Real.log ↑x ^ 2))) := by 
+        ext x
+        ring
+      rw [changesign]
+      rw [(by norm_num : (0 : ℝ) = -0)]
+      apply Filter.Tendsto.neg
+      let squeezefunc := (fun (x : ℕ) => 1/(x/(Real.log x)^2) )
+      have squeezefunc_tends_zero : Tendsto squeezefunc atTop (nhds 0) := by 
+        unfold squeezefunc
+        simp
+        have h2 : (fun (x : ℕ) => Real.log ↑x ^ 2 / ↑x) 
+        = (fun (x : ℝ) => Real.log ↑x ^ (2: ℝ) / ↑x) ∘ Nat.cast := by
+          ext x
+          simp
+        rw [h2]
+        apply Tendsto.comp _ tendsto_natCast_atTop_atTop
+        apply (Asymptotics.isLittleO_iff_tendsto _).mp
+        simp
+        have h3 := isLittleO_log_rpow_rpow_atTop 2 (by norm_num : (0: ℝ) < 1)
+        simp at h3
+        apply h3
+        intro x
+        norm_num
+        tauto
+
+      apply squeeze_zero _ _ squeezefunc_tends_zero
+      intro t
+      unfold optimal_r
+      have _ : 0 ≤ ↑t / Real.log ↑t ^ 2 - ↑⌊↑t / Real.log ↑t ^ 2⌋₊  := by
+        simp
+        apply Nat.floor_le
+        positivity
+      field_simp
+      positivity
+      intro t
+      unfold squeezefunc
+      gcongr
+      grind [bounded_difference_with_r t]
+
+    apply Filter.Tendsto.comp _ hg
+    rw [(by norm_num : 0 = Real.log 1)]
+    apply ContinuousAt.tendsto _ 
+    norm_num
+  -- HERE ENDS THE PROOF G2 TENDS TO 0 --
+    
   have g3tendsto0 : Tendsto g3 condFilter (nhds 0) := by --&&
     let f1 := (fun (a : ℕ) => 1 - 1 / ((a : ℝ) + 1))
     let f2 := (fun (a : ℕ) => 1 - 1 / (Real.log a)^2)
@@ -559,8 +657,6 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
       rw[(by norm_num : (0 : ℝ) = Real.log 2 * 0)]
       apply Tendsto.const_mul (Real.log 2) invlogtozero
 
-
-
     have h12 : Tendsto (f1 * f2) condFilter (𝓝 (1 * 1)) := by
       exact Tendsto.mul h1 h2
     have h123 : Tendsto (f1 * f2 * f3) condFilter (𝓝 (1 * 1 * 0)) := by
@@ -574,8 +670,6 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
     exact h1
     exact h2
     exact h3
-
-
 
   have g4tendsto0 : Tendsto g4 condFilter (nhds 0) := by sorry
 
@@ -598,9 +692,6 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
 
   rw [geq]
   exact h3
-
-
-
 
 theorem denominator_tendsto_one : Tendsto denominator_of_limit condFilter (nhds 1)
   := by
