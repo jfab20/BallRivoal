@@ -408,6 +408,14 @@ lemma invlogtozero : Tendsto (fun (n : ℕ) => 1 / Real.log ↑n) condFilter (nh
   apply Filter.tendsto_inf_left
   exact logtoinfinity
 
+lemma invaadd1 : Tendsto (fun (a : ℕ) => (1 : ℝ) / (a + 1)) condFilter (nhds 0) := by
+  apply Tendsto.const_div_atTop _ 1
+  apply Tendsto.atTop_of_add_const (-1) _
+  simp
+  unfold condFilter
+  apply Filter.tendsto_inf_left
+  apply tendsto_natCast_atTop_atTop
+
 theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) := by
 
   let g1 (a : ℕ) := 1/(Real.log a) * Real.log (a/(Real.log a)^2)
@@ -445,8 +453,6 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
       apply lognezero
 
   have g1tendsto1 : Tendsto g1 condFilter (nhds 1) := by
-
-
 
     have f3tendsto0 : Tendsto f3 condFilter (nhds 0) := by
       unfold condFilter
@@ -526,13 +532,7 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
       ring
 
     have h1 : Tendsto f1 condFilter (𝓝 1) := by
-      have invaadd1 : Tendsto (fun (a : ℕ) => (1 : ℝ) / (a + 1)) condFilter (nhds 0) := by
-        apply Tendsto.const_div_atTop _ 1
-        apply Tendsto.atTop_of_add_const (-1) _
-        simp
-        unfold condFilter
-        apply Filter.tendsto_inf_left
-        apply tendsto_natCast_atTop_atTop
+
       rw[(by norm_num : (1 : ℝ) = 1 - 0)]
       unfold f1
       apply Tendsto.const_sub 1 invaadd1
@@ -577,7 +577,60 @@ theorem numerator_tendsto_one : Tendsto numerator_of_limit condFilter (nhds 1) :
 
 
 
-  have g4tendsto0 : Tendsto g4 condFilter (nhds 0) := by sorry
+  have g4tendsto0 : Tendsto g4 condFilter (nhds 0) := by
+    let f1 := (fun (a : ℕ) => Real.log 2 * (1 / ((a + 1) * Real.log a)))
+    let f2 := (fun (a : ℕ) => a / Real.log a ^2 - optimal_r a)
+
+    have xlex x : (x : ℝ) ≤ x := by tauto
+
+    have zerolef1 (a : ℕ) : 0 ≤ f1 a := by
+      unfold f1
+      positivity
+
+    have zerolef2 (a : ℕ) : 0 ≤ f2 a := by
+      unfold f2 optimal_r
+      simp
+      apply Nat.floor_le _
+      positivity
+
+    have g4eq : g4 = f1 * f2 := by
+      ext a
+      rw [Pi.mul_apply]
+      unfold g4 f1 f2
+      field_simp
+
+    have h0 : ∀ (a : ℕ), 0 ≤ g4 a := by
+      intro a
+      rw [g4eq]
+      rw [Pi.mul_apply]
+      rw [<- mul_zero 0]
+      exact mul_le_mul_of_nonneg (zerolef1 a) (zerolef2 a) (xlex 0) (zerolef2 a)
+
+    have h1 : ∀ (a : ℕ), g4 a ≤ f1 a := by
+      intro a
+      rw [g4eq, Pi.mul_apply]
+      apply mul_le_of_le_one_right _ _
+      · exact zerolef1 a
+      · unfold f2 optimal_r
+        simp
+        apply le_of_lt _
+        rw[add_comm]
+        apply Nat.lt_floor_add_one (↑a / Real.log ↑a ^ 2)
+
+    have h2 : Tendsto f1 condFilter (nhds 0) := by
+      unfold f1
+      have h3 : Tendsto (fun (a : ℕ) => 1 / ((↑a + 1) * Real.log ↑a)) condFilter (nhds 0) := by
+        have eq : (fun (a : ℕ) => 1 / ((↑a + 1) * Real.log ↑a)) =
+        (fun (a : ℕ) => (1 : ℝ) / (↑a + 1)) * (fun (a : ℕ) => 1 / Real.log ↑a) := by
+          ext a
+          rw[Pi.mul_apply]
+          field_simp
+        rw[eq, (by norm_num : (0 : ℝ) = 0 * 0)]
+        apply Filter.Tendsto.mul invaadd1 invlogtozero
+      rw[(by norm_num : 0 = Real.log 2 * 0)]
+      apply Filter.Tendsto.const_mul (Real.log 2) h3
+
+    exact squeeze_zero h0 h1 h2
 
   have geq : numerator_of_limit = g1 + g2 + g3 + g4 := by
     ext a
