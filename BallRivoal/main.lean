@@ -280,12 +280,13 @@ lemma bounds_on_r (a : ℕ) (ha: 5 ≤ a) :
     linarith
   · unfold optimal_r
     have h1: 2 * ⌊a / Real.log a ^ 2⌋₊  ≤ 2 * (a / (Real.log a)^2) := by
-      have _ := Nat.floor_le (by positivity : 0 ≤ (a : ℝ) / Real.log a ^ 2)
-      linarith
+      gcongr
+      apply Nat.floor_le
+      positivity
     have h2 : 2 * (a / Real.log a ^ 2) < (a : ℝ) := by
       field_simp
       apply (div_lt_iff₀ _).mpr
-      · rw [one_mul]
+      · simp
         have h2: 2 < Real.log 5 ^2 := by
           have _ := Real.log_five_gt_d9
           nlinarith
@@ -363,7 +364,6 @@ lemma applying_corollary_to_r (a: ℕ) (hodd : Odd a) (h3lea: 3 ≤ a):
       intro h_eq
       injection h_eq with h_val
       exact one_ne_zero h_val
-
 
     apply le_trans _ h_dim
     have h1 : Real.log 2 ≤ Real.log 3 := Real.log_le_log (by norm_num) (by norm_num)
