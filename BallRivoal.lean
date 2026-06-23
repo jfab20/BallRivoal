@@ -1,1 +1,4 @@
-import BallRivoal.main
+import BallRivoal.definitions
+import BallRivoal.asymptotic_bound
+import BallRivoal.main_theorem_dimension_bound
+import BallRivoal.one_zeta3_zetaj_independent
